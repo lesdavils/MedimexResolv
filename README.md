@@ -47,8 +47,8 @@ Application complète de gestion d'interventions et maintenance médicale pour M
 ### Méthode 1: Déploiement automatique Debian 12
 ```bash
 # Clone du repository
-git clone https://github.com/votre-username/medimex-interventions.git
-cd medimex-interventions
+git clone https://github.com/lesdavils/MedimexResolv.git
+cd MedimexResolv
 
 # Déploiement automatique (en tant que root)
 chmod +x scripts/deploy-debian.sh

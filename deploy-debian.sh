@@ -33,9 +33,10 @@ echo "📦 Installation de Node.js..."
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt install -y nodejs
 
-# Installation de MySQL 8.0
-echo "🗄️ Installation de MySQL..."
-apt install -y mysql-server
+#Installation de Maria db
+echo "🗄️ Installation de MariaDB..."
+apt install -y mariadb-server mariadb-client
+
 
 # Installation de Docker
 echo "🐳 Installation de Docker..."

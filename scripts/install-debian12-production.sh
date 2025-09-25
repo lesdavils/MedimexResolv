@@ -287,7 +287,7 @@ initialize_database() {
     ADMIN_EXISTS=$(mysql -u mediresolv -p"${DB_PASSWORD}" mediresolv -N -e "SELECT COUNT(*) FROM users WHERE role = 'admin';")
     if [[ "$ADMIN_EXISTS" -eq "0" ]]; then
         warn "Aucun administrateur trouvé - création du compte admin"
-        ADMIN_HASH='$2b$12$LQv3c1yqBWVHxkd0LQ4YCOQEj5k4L0KbQ8n5YvZ2q9L0yF9xZ0wZ2' # Hash admin123!@#
+        ADMIN_HASH='$2b$12$LQv3vZ2'
         mysql -u mediresolv -p"${DB_PASSWORD}" mediresolv << EOF
 INSERT INTO users (username, email, password_hash, nom, prenom, role, statut, doit_changer_mot_passe) 
 VALUES ('admin', 'admin@mediresolv.fr', '${ADMIN_HASH}', 'Administrateur', 'Système', 'admin', 'actif', TRUE);

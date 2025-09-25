@@ -137,6 +137,23 @@ EOF
     log "✅ MariaDB sécurisé - Mots de passe sauvegardés dans /root/.mariadb_passwords"
 }
 
+NGINX_CONF=/etc/nginx/sites-enabled/default
+
+if [ ! -f "$NGINX_CONF" ]; then
+    echo "⚠️ Fichier NGINX $NGINX_CONF introuvable. Création ou copie de configuration par défaut..."
+    # Vous pouvez ici copier une config par défaut ou générer un fichier adapté selon USE_SSL
+    # Par exemple copier la config Docker incluse dans MediResolv/docker/nginx/default.conf
+    cp /path/to/project/docker/nginx/default.conf $NGINX_CONF
+fi
+
+if [ "$USE_SSL" = false ]; then
+    sed -i 's/listen 443 ssl;//g' "$NGINX_CONF"
+    sed -i 's/ssl_certificate .*;/# ssl certificate désactivé;/g' "$NGINX_CONF"
+    sed -i 's/ssl_certificate_key .*;/# ssl key désactivé;/g' "$NGINX_CONF"
+fi
+
+systemctl restart nginx
+
 echo "Souhaitez-vous activer SSL/TLS avec Certificat ? (Y/n) : "
 read -r use_ssl
 if [[ $use_ssl =~ ^([yY][eE][sS]|[yY])$ ]]; then

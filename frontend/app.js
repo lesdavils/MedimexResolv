@@ -1,9 +1,9 @@
 /**
- * Medimex - Système de Gestion d'Interventions
+ * mediresolv - Système de Gestion d'Interventions
  * Application complète de gestion d'interventions techniques
  */
 
-class MedimexApp {
+class mediresolvApp {
     constructor() {
         // Configuration de l'application
         this.config = {
@@ -40,7 +40,7 @@ class MedimexApp {
                 {
                     id: 1,
                     username: 'admin',
-                    email: 'admin@medimex.fr',
+                    email: 'admin@mediresolv.fr',
                     nom: 'Administrateur',
                     prenom: 'Système',
                     role: 'admin',
@@ -54,7 +54,7 @@ class MedimexApp {
                 {
                     id: 2,
                     username: 'supervisor',
-                    email: 'j.dupont@medimex.fr',
+                    email: 'j.dupont@mediresolv.fr',
                     nom: 'Dupont',
                     prenom: 'Jean',
                     role: 'superviseur',
@@ -68,7 +68,7 @@ class MedimexApp {
                 {
                     id: 3,
                     username: 'technicien',
-                    email: 'm.martin@medimex.fr',
+                    email: 'm.martin@mediresolv.fr',
                     nom: 'Martin',
                     prenom: 'Marie',
                     role: 'technicien',
@@ -96,7 +96,7 @@ class MedimexApp {
                 {
                     id: 5,
                     username: 'constructeur',
-                    email: 's.leblanc@medimex.fr',
+                    email: 's.leblanc@mediresolv.fr',
                     nom: 'Leblanc',
                     prenom: 'Sophie',
                     role: 'constructeur',
@@ -341,8 +341,8 @@ class MedimexApp {
      * Vérification du statut d'authentification
      */
     checkAuthStatus() {
-        const token = localStorage.getItem('medimex_token');
-        const userData = localStorage.getItem('medimex_user');
+        const token = localStorage.getItem('mediresolv_token');
+        const userData = localStorage.getItem('mediresolv_user');
         
         if (token && userData) {
             try {
@@ -418,8 +418,8 @@ class MedimexApp {
             
             // Stockage sécurisé (en production, utiliser des tokens JWT)
             const token = this.generateSimpleToken(user);
-            localStorage.setItem('medimex_token', token);
-            localStorage.setItem('medimex_user', JSON.stringify(user));
+            localStorage.setItem('mediresolv_token', token);
+            localStorage.setItem('mediresolv_user', JSON.stringify(user));
             
             // Mise à jour de la dernière connexion
             user.derniere_connexion = new Date();
@@ -443,8 +443,8 @@ class MedimexApp {
         e.preventDefault();
         
         // Nettoyage des données de session
-        localStorage.removeItem('medimex_token');
-        localStorage.removeItem('medimex_user');
+        localStorage.removeItem('mediresolv_token');
+        localStorage.removeItem('mediresolv_user');
         this.state.currentUser = null;
         
         this.showAlert('Déconnexion réussie', 'success');
@@ -1034,5 +1034,5 @@ class MedimexApp {
 // Initialisation de l'application
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new MedimexApp();
+    app = new mediresolvApp();
 });

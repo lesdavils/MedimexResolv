@@ -1,21 +1,24 @@
 {
-  "name": "medimex-resolv",
+  "name": "mediresolv",
   "version": "1.0.0",
   "description": "Système professionnel de gestion d'interventions pour équipements médicaux - Production Ready",
-  "main": "server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
     "test": "jest --coverage",
-    "migrate": "node scripts/migrate.js",
-    "seed": "node scripts/seed.js",
-    "backup": "node scripts/backup.js",
-    "lint": "eslint . --ext .js --fix",
+    "migrate": "node backend/scripts/migrate.js",
+    "seed": "node backend/scripts/seed.js",
+    "backup": "node backend/scripts/backup.js",
+    "lint": "eslint backend --ext .js --fix",
     "security-audit": "npm audit",
-    "production-check": "node scripts/production-check.js"
+    "production-check": "node backend/scripts/production-check.js",
+    "docker:build": "docker-compose -f docker-compose.production.yml build",
+    "docker:up": "docker-compose -f docker-compose.production.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.production.yml down"
   },
   "keywords": [
-    "medimex",
+    "mediresolv",
     "interventions",
     "maintenance",
     "medical",
@@ -25,7 +28,7 @@
     "mariadb",
     "production"
   ],
-  "author": "MedimexResolv Team",
+  "author": "MediResolv Team",
   "license": "PROPRIETARY",
   "private": true,
   "engines": {
@@ -63,10 +66,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lesdavils/MedimexResolv.git"
+    "url": "https://github.com/lesdavils/MediResolv.git"
   },
   "bugs": {
-    "url": "https://github.com/lesdavils/MedimexResolv/issues"
+    "url": "https://github.com/lesdavils/MediResolv/issues"
   },
-  "homepage": "https://github.com/lesdavils/MedimexResolv#readme"
+  "homepage": "https://github.com/lesdavils/MediResolv#readme"
 }

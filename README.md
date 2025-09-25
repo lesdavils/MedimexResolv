@@ -1,7 +1,7 @@
-# MedimexResolv - Production Ready
+# MediResolv - Production Ready
 
 <div align="center">
-  <h1>🏥 MedimexResolv</h1>
+  <h1>🏥 MediResolv</h1>
   <p><strong>Système Professionnel de Gestion d'Interventions pour Équipements Médicaux</strong></p>
   
   <p>
@@ -16,7 +16,7 @@
 
 ## 🚀 Aperçu
 
-MedimexResolv est une solution d'entreprise complète pour la gestion des interventions sur équipements médicaux. Conçu avec une sécurité de niveau bancaire et optimisé pour les environnements de production critiques.
+MediResolv est une solution d'entreprise complète pour la gestion des interventions sur équipements médicaux. Conçu avec une sécurité de niveau bancaire et optimisé pour les environnements de production critiques.
 
 ### ✨ Caractéristiques Clés
 
@@ -114,8 +114,8 @@ MedimexResolv est une solution d'entreprise complète pour la gestion des interv
 
 ```bash
 # 1. Cloner le repository
-git clone https://github.com/lesdavils/MedimexResolv.git
-cd MedimexResolv
+git clone https://github.com/lesdavils/MediResolv.git
+cd MediResolv
 
 # 2. Configuration
 cp .env.example .env
@@ -132,8 +132,8 @@ curl http://localhost/health
 
 ```bash
 # 1. Cloner et installer  
-git clone https://github.com/lesdavils/MedimexResolv.git
-cd MedimexResolv
+git clone https://github.com/lesdavils/MediResolv.git
+cd MediResolv
 
 # 2. Installation automatique (root requis)
 chmod +x scripts/install-debian12-production.sh
@@ -260,7 +260,7 @@ EMAIL_PASS=mot_passe_smtp
 - **Fréquence** : Quotidienne à 2h du matin
 - **Rétention** : 30 jours par défaut
 - **Format** : Dump MariaDB compressé (.sql.gz)  
-- **Manuel** : `/usr/local/bin/medimex-resolv-backup`
+- **Manuel** : `/usr/local/bin/mediresolv-backup`
 
 ### 📊 Monitoring Production
 - **Logs** : Winston + rotation automatique  
@@ -274,21 +274,21 @@ EMAIL_PASS=mot_passe_smtp
 ### 🎛️ Commandes Système
 ```bash  
 # Gestion service
-sudo systemctl status medimex-resolv
-sudo systemctl restart medimex-resolv  
-sudo systemctl stop medimex-resolv
+sudo systemctl status mediresolv
+sudo systemctl restart mediresolv  
+sudo systemctl stop mediresolv
 
 # Logs temps réel  
-sudo journalctl -u medimex-resolv -f
-tail -f /opt/medimex-resolv/logs/app.log
+sudo journalctl -u mediresolv -f
+tail -f /opt/mediresolv/logs/app.log
 
 # Sauvegarde manuelle
-sudo /usr/local/bin/medimex-resolv-backup
+sudo /usr/local/bin/mediresolv-backup
 
 # Mise à jour application
-cd /opt/medimex-resolv
+cd /opt/mediresolv
 sudo git pull origin main
-sudo systemctl restart medimex-resolv
+sudo systemctl restart mediresolv
 ```
 
 ### 🐳 Docker Production
@@ -336,7 +336,7 @@ npm run security-audit
 ## 🆘 Support & Maintenance
 
 ### 📞 Support Entreprise
-- **Email** : support@medimex.fr
+- **Email** : support@mediresolv.fr
 - **Téléphone** : +33 (0)1 XX XX XX XX  
 - **Heures** : 9h-18h, Lundi-Vendredi
 - **Urgences** : 24h/7j pour clients Enterprise
@@ -348,7 +348,7 @@ npm run security-audit
 - **SSL** : Renouvellement automatique Let's Encrypt
 
 ### 🐛 Signalement de Bugs
-1. Vérifiez les [Issues GitHub](https://github.com/lesdavils/MedimexResolv/issues)
+1. Vérifiez les [Issues GitHub](https://github.com/lesdavils/MediResolv/issues)
 2. Créez une issue détaillée avec logs  
 3. Support prioritaire pour clients Enterprise
 4. Correctifs critiques sous 24h
@@ -372,7 +372,7 @@ npm run security-audit
 ## 📄 Licence & Conformité
 
 ### ⚖️ Licence
-- **Type** : Licence Propriétaire Medimex
+- **Type** : Licence Propriétaire mediresolv
 - **Usage** : Entreprise uniquement  
 - **Support** : Inclus pour clients licenciés
 - **Mises à jour** : Incluses pendant 2 ans
@@ -386,7 +386,7 @@ npm run security-audit
 ---
 
 <div align="center">
-  <p><strong>MedimexResolv v1.0.0 - Production Ready</strong></p>
-  <p>© 2025 Medimex/Athlex - Tous droits réservés</p>
+  <p><strong>MediResolv v1.0.0 - Production Ready</strong></p>
+  <p>© 2025 mediresolv/Athlex - Tous droits réservés</p>
   <p>Made with ❤️ for medical equipment professionals</p>
 </div>

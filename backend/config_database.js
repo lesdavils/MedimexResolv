@@ -4,14 +4,20 @@ require('dotenv').config();
 
 // Configuration du logger
 const logger = winston.createLogger({
-    level: 'info',
+    level: process.env.LOG_LEVEL || 'info',
     format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
         winston.format.json()
     ),
     transports: [
-        new winston.transports.File({ filename: 'logs/database.log' }),
+        new winston.transports.File({ 
+            filename: 'logs/database.log',
+            level: 'error'
+        }),
+        new winston.transports.File({ 
+            filename: 'logs/database-combined.log'
+        }),
         new winston.transports.Console({
             format: winston.format.simple()
         })
@@ -55,7 +61,7 @@ const sequelizeConfig = {
         handleDisconnects: true
     },
     // Configuration des logs
-    logging: process.env.NODE_ENV === 'development' 
+    logging: process.env.NODE_ENV === 'development'
         ? (msg) => logger.info(msg)
         : false,
     // Options de performance
@@ -93,7 +99,7 @@ const sequelizeConfig = {
 
 // Création de l'instance Sequelize
 const sequelize = new Sequelize(
-    process.env.DB_NAME || 'medimex_resolv',
+    process.env.DB_NAME || 'mediresolv',
     process.env.DB_USER || 'root',
     process.env.DB_PASSWORD || '',
     sequelizeConfig
@@ -104,21 +110,21 @@ const testConnection = async (retries = 3) => {
     try {
         await sequelize.authenticate();
         logger.info('✅ Connexion MariaDB établie avec succès');
-        
+
         // Afficher la version de MariaDB
         const [results] = await sequelize.query('SELECT VERSION() as version');
         logger.info(`📊 Version MariaDB: ${results[0].version}`);
-        
+
         return true;
     } catch (error) {
         logger.error(`❌ Erreur de connexion MariaDB (tentatives restantes: ${retries - 1}):`, error);
-        
+
         if (retries > 1) {
             logger.info('🔄 Nouvelle tentative de connexion dans 5 secondes...');
             await new Promise(resolve => setTimeout(resolve, 5000));
             return testConnection(retries - 1);
         }
-        
+
         throw error;
     }
 };
@@ -134,7 +140,7 @@ const optimizeDatabase = async () => {
                 "SET SESSION max_execution_time = 30000",
                 "SET SESSION optimizer_search_depth = 8"
             ];
-            
+
             for (const query of optimizations) {
                 try {
                     await sequelize.query(query);
@@ -142,7 +148,7 @@ const optimizeDatabase = async () => {
                     logger.warn(`Optimisation ignorée: ${query} - ${error.message}`);
                 }
             }
-            
+
             logger.info('✅ Optimisations MariaDB appliquées');
         }
     } catch (error) {
@@ -168,7 +174,6 @@ sequelize.addHook('beforeDisconnect', async (connection) => {
 sequelize.addHook('afterConnect', (connection, config) => {
     connection.on('error', (err) => {
         logger.error('❌ Erreur de connexion MariaDB:', err);
-        
         if (err.code === 'PROTOCOL_CONNECTION_LOST') {
             logger.info('🔄 Tentative de reconnexion automatique...');
         }
@@ -263,9 +268,8 @@ const backupDatabase = async () => {
         const { exec } = require('child_process');
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const backupFile = `backup_${process.env.DB_NAME}_${timestamp}.sql`;
-        
         const command = `mariadb-dump -h ${process.env.DB_HOST} -u ${process.env.DB_USER} -p${process.env.DB_PASSWORD} ${process.env.DB_NAME} > backups/${backupFile}`;
-        
+
         exec(command, (error, stdout, stderr) => {
             if (error) {
                 logger.error('❌ Erreur de sauvegarde:', error);

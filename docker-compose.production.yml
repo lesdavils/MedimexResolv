@@ -4,7 +4,7 @@ services:
   # Base de données MariaDB
   mariadb:
     image: mariadb:10.11
-    container_name: medimex-mariadb
+    container_name: mediresolv-mariadb
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
@@ -20,7 +20,7 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     networks:
-      - medimex-network
+      - mediresolv-network
     healthcheck:
       test: ["CMD", "mariadb-admin", "-u", "root", "-p${DB_ROOT_PASSWORD}", "ping", "--silent"]
       interval: 30s
@@ -41,7 +41,7 @@ services:
   # Redis pour le cache et sessions
   redis:
     image: redis:7-alpine
-    container_name: medimex-redis
+    container_name: mediresolv-redis
     restart: unless-stopped
     command: >
       --requirepass ${REDIS_PASSWORD}
@@ -55,7 +55,7 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     networks:
-      - medimex-network
+      - mediresolv-network
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 30s
@@ -68,7 +68,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
-    container_name: medimex-backend
+    container_name: mediresolv-backend
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -90,7 +90,7 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     networks:
-      - medimex-network
+      - mediresolv-network
     depends_on:
       mariadb:
         condition: service_healthy
@@ -117,7 +117,7 @@ services:
   # Frontend Nginx
   frontend:
     image: nginx:alpine
-    container_name: medimex-frontend
+    container_name: mediresolv-frontend
     restart: unless-stopped
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
@@ -129,7 +129,7 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - medimex-network
+      - mediresolv-network
     depends_on:
       - backend
     healthcheck:
@@ -149,7 +149,7 @@ services:
   # Service de sauvegarde automatique
   backup:
     image: mariadb:10.11
-    container_name: medimex-backup
+    container_name: mediresolv-backup
     restart: "no"
     environment:
       MYSQL_HOST: mariadb
@@ -161,7 +161,7 @@ services:
       - backup_data:/backups
       - ./scripts/backup.sh:/backup.sh:ro
     networks:
-      - medimex-network
+      - mediresolv-network
     depends_on:
       mariadb:
         condition: service_healthy
@@ -172,7 +172,7 @@ services:
   # Monitoring avec Prometheus (optionnel)
   prometheus:
     image: prom/prometheus:latest
-    container_name: medimex-prometheus
+    container_name: mediresolv-prometheus
     restart: unless-stopped
     ports:
       - "127.0.0.1:9090:9090"
@@ -180,7 +180,7 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     networks:
-      - medimex-network
+      - mediresolv-network
     profiles:
       - monitoring
     command:
@@ -194,7 +194,7 @@ services:
   # Grafana pour les métriques (optionnel)
   grafana:
     image: grafana/grafana:latest
-    container_name: medimex-grafana
+    container_name: mediresolv-grafana
     restart: unless-stopped
     ports:
       - "127.0.0.1:3001:3000"
@@ -204,7 +204,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     networks:
-      - medimex-network
+      - mediresolv-network
     profiles:
       - monitoring
     depends_on:
@@ -216,35 +216,35 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /opt/medimex-resolv/data/mariadb
+      device: /opt/mediresolv/data/mariadb
       
   redis_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/medimex-resolv/data/redis
+      device: /opt/mediresolv/data/redis
       
   backend_uploads:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/medimex-resolv/uploads
+      device: /opt/mediresolv/uploads
       
   backend_logs:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/medimex-resolv/logs
+      device: /opt/mediresolv/logs
       
   backup_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /opt/medimex-resolv/backups
+      device: /opt/mediresolv/backups
       
   prometheus_data:
     driver: local
@@ -253,7 +253,7 @@ volumes:
     driver: local
 
 networks:
-  medimex-network:
+  mediresolv-network:
     driver: bridge
     ipam:
       config:

@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Script d'installation production MedimexResolv pour Debian 12
+# Script d'installation production MediResolv pour Debian 12
 # Sécurité niveau entreprise avec MariaDB
 
 set -euo pipefail
 
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly APP_NAME="medimex-resolv"
+readonly APP_NAME="mediresolv"
 readonly APP_DIR="/opt/${APP_NAME}"
-readonly SERVICE_USER="medimex"
+readonly SERVICE_USER="mediresolv"
 readonly LOG_FILE="/var/log/${APP_NAME}_install.log"
 
 # Couleurs
@@ -112,22 +112,22 @@ setup_mariadb_security() {
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 FLUSH PRIVILEGES;
 
-CREATE DATABASE IF NOT EXISTS medimex_resolv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'medimex'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
-GRANT ALL PRIVILEGES ON medimex_resolv.* TO 'medimex'@'localhost';
-GRANT CREATE, DROP, INDEX, ALTER ON medimex_resolv.* TO 'medimex'@'localhost';
+CREATE DATABASE IF NOT EXISTS mediresolv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'mediresolv'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
+GRANT ALL PRIVILEGES ON mediresolv.* TO 'mediresolv'@'localhost';
+GRANT CREATE, DROP, INDEX, ALTER ON mediresolv.* TO 'mediresolv'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
     # Sauvegarde des mots de passe
     cat > /root/.mariadb_passwords << EOF
-# MedimexResolv - Mots de passe MariaDB
+# MediResolv - Mots de passe MariaDB
 # GARDEZ CE FICHIER EN SÉCURITÉ !
 
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
 DB_PASSWORD=${DB_PASSWORD}
-DB_USER=medimex
-DB_NAME=medimex_resolv
+DB_USER=mediresolv
+DB_NAME=mediresolv
 
 # Date de création: $(date)
 EOF
@@ -157,7 +157,7 @@ install_nginx() {
 # Création de la configuration Nginx
 create_nginx_config() {
     cat > /etc/nginx/sites-available/${APP_NAME} << EOF
-# Configuration Nginx pour MedimexResolv
+# Configuration Nginx pour MediResolv
 # Sécurité niveau entreprise
 
 server {
@@ -173,8 +173,8 @@ server {
     server_name _;
     
     # Configuration SSL (certificats à configurer)
-    ssl_certificate /etc/ssl/certs/medimex.crt;
-    ssl_certificate_key /etc/ssl/private/medimex.key;
+    ssl_certificate /etc/ssl/certs/mediresolv.crt;
+    ssl_certificate_key /etc/ssl/private/mediresolv.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
@@ -267,7 +267,7 @@ create_system_user() {
 
 # Installation de l'application
 install_application() {
-    info "📦 Installation de l'application MedimexResolv..."
+    info "📦 Installation de l'application MediResolv..."
     
     # Création de la structure
     mkdir -p "$APP_DIR"/{backend,frontend,logs,backups,uploads}
@@ -302,15 +302,15 @@ setup_environment() {
     JWT_SECRET=$(openssl rand -base64 64)
     
     cat > "$APP_DIR/backend/.env" << EOF
-# Configuration production MedimexResolv
+# Configuration production MediResolv
 NODE_ENV=production
 PORT=3000
 
 # Base de données MariaDB
 DB_HOST=localhost
-DB_USER=medimex
+DB_USER=mediresolv
 DB_PASSWORD=${DB_PASSWORD}
-DB_NAME=medimex_resolv
+DB_NAME=mediresolv
 DB_PORT=3306
 
 # Sécurité JWT
@@ -353,8 +353,8 @@ setup_systemd_service() {
     
     cat > /etc/systemd/system/${APP_NAME}.service << EOF
 [Unit]
-Description=MedimexResolv - Système de Gestion d'Interventions
-Documentation=https://github.com/lesdavils/MedimexResolv
+Description=MediResolv - Système de Gestion d'Interventions
+Documentation=https://github.com/lesdavils/MediResolv
 After=network.target mariadb.service
 Wants=mariadb.service
 
@@ -408,12 +408,12 @@ initialize_database() {
     
     # Import du schéma
     if [[ -f "./database/mariadb-schema.sql" ]]; then
-        mysql -u medimex -p"${DB_PASSWORD}" medimex_resolv < ./database/mariadb-schema.sql
+        mysql -u mediresolv -p"${DB_PASSWORD}" mediresolv < ./database/mariadb-schema.sql
         log "✅ Schéma de base importé"
     fi
     
     # Vérification de l'admin
-    ADMIN_EXISTS=$(mysql -u medimex -p"${DB_PASSWORD}" medimex_resolv -N -e "SELECT COUNT(*) FROM users WHERE role = 'admin';")
+    ADMIN_EXISTS=$(mysql -u mediresolv -p"${DB_PASSWORD}" mediresolv -N -e "SELECT COUNT(*) FROM users WHERE role = 'admin';")
     
     if [[ "$ADMIN_EXISTS" -eq "0" ]]; then
         warn "Aucun administrateur trouvé - création du compte admin"
@@ -421,9 +421,9 @@ initialize_database() {
         # Hash du mot de passe Admin123!@#
         ADMIN_HASH='$2b$12$LQv3c1yqBWVHxkd0LQ4YCOQEj5k4L0KbQ8n5YvZ2q9L0yF9xZ0wZ2'
         
-        mysql -u medimex -p"${DB_PASSWORD}" medimex_resolv << EOF
+        mysql -u mediresolv -p"${DB_PASSWORD}" mediresolv << EOF
 INSERT INTO users (username, email, password_hash, nom, prenom, role, statut, doit_changer_mot_passe) 
-VALUES ('admin', 'admin@medimex.fr', '${ADMIN_HASH}', 'Administrateur', 'Système', 'admin', 'actif', TRUE);
+VALUES ('admin', 'admin@mediresolv.fr', '${ADMIN_HASH}', 'Administrateur', 'Système', 'admin', 'actif', TRUE);
 EOF
         
         log "✅ Compte administrateur créé (admin / Admin123!@#)"
@@ -484,11 +484,11 @@ setup_backup() {
     
     cat > /usr/local/bin/${APP_NAME}-backup << 'EOF'
 #!/bin/bash
-# Sauvegarde automatique MedimexResolv
+# Sauvegarde automatique MediResolv
 
-BACKUP_DIR="/opt/medimex-resolv/backups"
-DB_NAME="medimex_resolv"
-DB_USER="medimex"
+BACKUP_DIR="/opt/mediresolv/backups"
+DB_NAME="mediresolv"
+DB_USER="mediresolv"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="${BACKUP_DIR}/backup_${TIMESTAMP}.sql.gz"
 
@@ -541,7 +541,7 @@ run_tests() {
     
     # Test de l'application
     if systemctl is-active --quiet ${APP_NAME}; then
-        log "✅ Application MedimexResolv opérationnelle"
+        log "✅ Application MediResolv opérationnelle"
         
         # Test HTTP
         if curl -sf http://localhost:3000/health > /dev/null; then
@@ -556,10 +556,10 @@ run_tests() {
 
 # Affichage du résumé final
 display_summary() {
-    log "🎉 Installation de MedimexResolv terminée avec succès !"
+    log "🎉 Installation de MediResolv terminée avec succès !"
     echo
     echo "═══════════════════════════════════════════════════════════════"
-    echo -e "${GREEN}🏥 MEDIMEXRESOLV INSTALLÉ AVEC SUCCÈS 🏥${NC}"
+    echo -e "${GREEN}🏥 MediResolv INSTALLÉ AVEC SUCCÈS 🏥${NC}"
     echo "═══════════════════════════════════════════════════════════════"
     echo
     echo -e "${BLUE}📍 ACCÈS APPLICATION :${NC}"
@@ -573,7 +573,7 @@ display_summary() {
     echo
     echo -e "${BLUE}🗄️  BASE DE DONNÉES :${NC}"
     echo "   Type: MariaDB $(mysql --version | awk '{print $5}' | awk -F, '{print $1}')"
-    echo "   Base: medimex_resolv"
+    echo "   Base: mediresolv"
     echo "   Mots de passe: /root/.mariadb_passwords"
     echo
     echo -e "${BLUE}🔧 GESTION DU SERVICE :${NC}"
@@ -599,13 +599,13 @@ display_summary() {
     echo "   4. Créez vos utilisateurs"
     echo "   5. Importez vos données clients"
     echo
-    echo -e "${GREEN}🎯 MedimexResolv est prêt pour la production ! ${NC}"
+    echo -e "${GREEN}🎯 MediResolv est prêt pour la production ! ${NC}"
     echo "═══════════════════════════════════════════════════════════════"
 }
 
 # Fonction principale
 main() {
-    echo -e "${BLUE}🚀 Installation MedimexResolv pour Debian 12${NC}"
+    echo -e "${BLUE}🚀 Installation MediResolv pour Debian 12${NC}"
     echo -e "${BLUE}   Production Ready - Sécurité Entreprise${NC}"
     echo "══════════════════════════════════════════════════════════════"
     

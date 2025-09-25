@@ -10,18 +10,23 @@ require('dotenv').config();
 // Import des configurations
 const { sequelize } = require('./config/database');
 const logger = require('./config/logger');
-const securityConfig = require('./config/security');
 
 // Import des routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const clientRoutes = require('./routes/clients');
 const ticketRoutes = require('./routes/tickets');
+const machineRoutes = require('./routes/machines');
 const dashboardRoutes = require('./routes/dashboard');
+const interventionRoutes = require('./routes/interventions');
+const pieceRoutes = require('./routes/pieces');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuration sécurité niveau entreprise
+// =====================================================
+// CONFIGURATION SÉCURITÉ NIVEAU ENTREPRISE
+// =====================================================
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -46,8 +51,8 @@ app.use(helmet({
 
 // Configuration CORS sécurisée
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? process.env.FRONTEND_URL 
+    origin: process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
     optionsSuccessStatus: 200,
@@ -63,7 +68,7 @@ const createRateLimit = (windowMs, max, message) => rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        logger.warn(`Rate limit exceeded for IP: ${req.ip}`);
+        logger.warn(`Rate limit dépassé pour IP: ${req.ip}`);
         res.status(429).json({ error: message });
     }
 });
@@ -77,14 +82,15 @@ app.use(createRateLimit(15 * 60 * 1000, 200, 'Trop de requêtes'));
 app.use(compression());
 
 // Body parsing avec limites de sécurité
-app.use(express.json({ 
+app.use(express.json({
     limit: '10mb',
-    strict: true 
+    strict: true
 }));
-app.use(express.urlencoded({ 
-    extended: true, 
+
+app.use(express.urlencoded({
+    extended: true,
     limit: '10mb',
-    parameterLimit: 1000 
+    parameterLimit: 1000
 }));
 
 // Logging des requêtes
@@ -97,7 +103,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// Servir les fichiers statiques avec cache
+// =====================================================
+// SERVIR LES FICHIERS STATIQUES
+// =====================================================
 app.use('/static', express.static(path.join(__dirname, '../frontend'), {
     maxAge: process.env.NODE_ENV === 'production' ? '1y' : '0',
     etag: true,
@@ -109,30 +117,53 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     etag: true
 }));
 
-// Routes API avec préfixe sécurisé
+// =====================================================
+// ROUTES API AVEC PRÉFIXE SÉCURISÉ
+// =====================================================
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/clients', clientRoutes);
 app.use('/api/tickets', ticketRoutes);
+app.use('/api/machines', machineRoutes);
+app.use('/api/interventions', interventionRoutes);
+app.use('/api/pieces', pieceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// Route principale pour SPA
+// =====================================================
+// ROUTE PRINCIPALE POUR SPA
+// =====================================================
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Route de santé système
-app.get('/health', (req, res) => {
-    const healthCheck = {
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        version: process.env.npm_package_version || '1.0.0',
-        environment: process.env.NODE_ENV,
-        database: 'connected' // TODO: vérifier la connexion DB
-    };
+// =====================================================
+// ROUTE DE SANTÉ SYSTÈME
+// =====================================================
+app.get('/health', async (req, res) => {
+    try {
+        // Test de connexion à la base de données
+        await sequelize.authenticate();
 
-    res.status(200).json(healthCheck);
+        const healthCheck = {
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            version: process.env.npm_package_version || '1.0.0',
+            environment: process.env.NODE_ENV,
+            database: 'connected',
+            application: 'MediResolv'
+        };
+
+        res.status(200).json(healthCheck);
+    } catch (error) {
+        logger.error('Health check failed:', error);
+        res.status(500).json({
+            status: 'ERROR',
+            timestamp: new Date().toISOString(),
+            error: 'Database connection failed'
+        });
+    }
 });
 
 // Route pour les métriques (admin uniquement)
@@ -144,6 +175,7 @@ app.get('/metrics', require('./middleware/auth').requireAdmin, (req, res) => {
             cpu: process.cpuUsage()
         },
         application: {
+            name: 'MediResolv',
             version: process.env.npm_package_version,
             environment: process.env.NODE_ENV,
             timestamp: new Date().toISOString()
@@ -153,7 +185,9 @@ app.get('/metrics', require('./middleware/auth').requireAdmin, (req, res) => {
     res.json(metrics);
 });
 
-// Middleware de gestion d'erreurs
+// =====================================================
+// MIDDLEWARE DE GESTION D'ERREURS
+// =====================================================
 app.use((err, req, res, next) => {
     // Log de l'erreur
     logger.error('Erreur serveur:', {
@@ -193,7 +227,9 @@ app.use('*', (req, res) => {
     }
 });
 
-// Fonction de démarrage sécurisé
+// =====================================================
+// FONCTION DE DÉMARRAGE SÉCURISÉ
+// =====================================================
 const startServer = async () => {
     try {
         // Vérification des variables d'environnement critiques
@@ -223,11 +259,11 @@ const startServer = async () => {
 
         // Démarrage du serveur
         const server = app.listen(PORT, '0.0.0.0', () => {
-            logger.info(`🚀 MedimexResolv démarré avec succès`);
+            logger.info(`🚀 MediResolv démarré avec succès`);
             logger.info(`📍 Port: ${PORT}`);
             logger.info(`🌍 Environnement: ${process.env.NODE_ENV}`);
             logger.info(`🔗 URL: http://localhost:${PORT}`);
-            logger.info(`❤️  Santé: http://localhost:${PORT}/health`);
+            logger.info(`❤️ Santé: http://localhost:${PORT}/health`);
         });
 
         // Configuration timeout serveur
@@ -239,7 +275,7 @@ const startServer = async () => {
 
         async function gracefulShutdown() {
             logger.info('🛑 Arrêt gracieux en cours...');
-            
+
             server.close(async () => {
                 try {
                     await sequelize.close();
@@ -259,7 +295,9 @@ const startServer = async () => {
     }
 };
 
-// Gestion des erreurs non capturées
+// =====================================================
+// GESTION DES ERREURS NON CAPTURÉES
+// =====================================================
 process.on('uncaughtException', (error) => {
     logger.error('Erreur non capturée:', error);
     process.exit(1);

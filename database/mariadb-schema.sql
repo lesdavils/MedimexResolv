@@ -1,14 +1,19 @@
--- Base de données MedimexResolv - MariaDB Production
+-- Base de données MediResolv - MariaDB Production
 -- Optimisé pour MariaDB 10.11+ sur Debian 12
 -- Sécurité niveau entreprise
 
-CREATE DATABASE IF NOT EXISTS medimex_resolv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE medimex_resolv;
+-- Suppression et création de la base de données
+DROP DATABASE IF EXISTS mediresolv;
+CREATE DATABASE IF NOT EXISTS mediresolv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE mediresolv;
 
 -- Configuration MariaDB pour sécurité
 SET sql_mode = 'STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
 
--- Table des utilisateurs avec sécurité renforcée
+-- =====================================================
+-- TABLE DES UTILISATEURS AVEC SÉCURITÉ RENFORCÉE
+-- =====================================================
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -30,18 +35,22 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by INT,
     updated_by INT,
-    
+
+    -- Index pour performance
     INDEX idx_username (username),
     INDEX idx_email (email),
     INDEX idx_role (role),
     INDEX idx_statut (statut),
     INDEX idx_uuid (uuid),
-    
+
+    -- Clés étrangères
     CONSTRAINT fk_user_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_user_updater FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table des clients avec données complètes
+-- =====================================================
+-- TABLE DES CLIENTS AVEC DONNÉES COMPLÈTES
+-- =====================================================
 CREATE TABLE clients (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -63,17 +72,21 @@ CREATE TABLE clients (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by INT,
-    
+
+    -- Index pour performance
     INDEX idx_nom (nom),
     INDEX idx_email (email),
     INDEX idx_statut (statut),
     INDEX idx_type_etablissement (type_etablissement),
     INDEX idx_uuid (uuid),
-    
-    CONSTRAINT fk_client_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
-);
 
--- Table des machines/équipements
+    -- Clés étrangères
+    CONSTRAINT fk_client_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLE DES MACHINES/ÉQUIPEMENTS
+-- =====================================================
 CREATE TABLE machines (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -101,19 +114,23 @@ CREATE TABLE machines (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by INT,
-    
+
+    -- Index pour performance
     INDEX idx_numero_serie (numero_serie),
     INDEX idx_client (client_id),
     INDEX idx_categorie (categorie),
     INDEX idx_statut (statut),
     INDEX idx_uuid (uuid),
     INDEX idx_date_prochaine_maintenance (date_prochaine_maintenance),
-    
+
+    -- Clés étrangères
     CONSTRAINT fk_machine_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     CONSTRAINT fk_machine_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table des tickets avec workflow avancé
+-- =====================================================
+-- TABLE DES TICKETS AVEC WORKFLOW AVANCÉ
+-- =====================================================
 CREATE TABLE tickets (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -149,7 +166,8 @@ CREATE TABLE tickets (
     tags JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
+    -- Index pour performance
     INDEX idx_numero (numero_ticket),
     INDEX idx_statut (statut),
     INDEX idx_priorite (priorite),
@@ -160,15 +178,18 @@ CREATE TABLE tickets (
     INDEX idx_date_planifiee (date_planifiee),
     INDEX idx_date_creation (date_creation),
     INDEX idx_uuid (uuid),
-    
+
+    -- Clés étrangères
     CONSTRAINT fk_ticket_client FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     CONSTRAINT fk_ticket_machine FOREIGN KEY (machine_id) REFERENCES machines(id) ON DELETE SET NULL,
     CONSTRAINT fk_ticket_technicien FOREIGN KEY (technicien_id) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_ticket_createur FOREIGN KEY (createur_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_ticket_superviseur FOREIGN KEY (superviseur_id) REFERENCES users(id) ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table des interventions avec détails complets
+-- =====================================================
+-- TABLE DES INTERVENTIONS AVEC DÉTAILS COMPLETS
+-- =====================================================
 CREATE TABLE interventions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -211,19 +232,23 @@ CREATE TABLE interventions (
     conditions_particulieres TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
+    -- Index pour performance
     INDEX idx_ticket (ticket_id),
     INDEX idx_technicien (technicien_id),
     INDEX idx_date_debut (date_debut),
     INDEX idx_statut (statut),
     INDEX idx_numero_intervention (numero_intervention),
     INDEX idx_uuid (uuid),
-    
+
+    -- Clés étrangères
     CONSTRAINT fk_intervention_ticket FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
     CONSTRAINT fk_intervention_technicien FOREIGN KEY (technicien_id) REFERENCES users(id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table des pièces détachées avec gestion avancée
+-- =====================================================
+-- TABLE DES PIÈCES DÉTACHÉES AVEC GESTION AVANCÉE
+-- =====================================================
 CREATE TABLE pieces_detachees (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -263,7 +288,8 @@ CREATE TABLE pieces_detachees (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_by INT,
-    
+
+    -- Index pour performance
     INDEX idx_reference_interne (reference_interne),
     INDEX idx_code_barre (code_barre),
     INDEX idx_categorie (categorie),
@@ -271,11 +297,14 @@ CREATE TABLE pieces_detachees (
     INDEX idx_statut (statut),
     INDEX idx_stock_actuel (stock_actuel),
     INDEX idx_uuid (uuid),
-    
-    CONSTRAINT fk_piece_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
-);
 
--- Table des mouvements de stock avec traçabilité complète
+    -- Clés étrangères
+    CONSTRAINT fk_piece_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLE DES MOUVEMENTS DE STOCK AVEC TRAÇABILITÉ COMPLÈTE
+-- =====================================================
 CREATE TABLE mouvements_stock (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -300,21 +329,25 @@ CREATE TABLE mouvements_stock (
     date_validation TIMESTAMP NULL,
     commentaires TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
+    -- Index pour performance
     INDEX idx_piece (piece_id),
     INDEX idx_type_mouvement (type_mouvement),
     INDEX idx_date (created_at),
     INDEX idx_utilisateur (utilisateur_id),
     INDEX idx_intervention (intervention_id),
     INDEX idx_uuid (uuid),
-    
+
+    -- Clés étrangères
     CONSTRAINT fk_mouvement_piece FOREIGN KEY (piece_id) REFERENCES pieces_detachees(id) ON DELETE CASCADE,
     CONSTRAINT fk_mouvement_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_mouvement_validateur FOREIGN KEY (valide_par) REFERENCES users(id) ON DELETE SET NULL,
     CONSTRAINT fk_mouvement_intervention FOREIGN KEY (intervention_id) REFERENCES interventions(id) ON DELETE SET NULL
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Table des logs de sécurité et audit
+-- =====================================================
+-- TABLE DES LOGS DE SÉCURITÉ ET AUDIT
+-- =====================================================
 CREATE TABLE security_logs (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -333,7 +366,8 @@ CREATE TABLE security_logs (
     execution_time_ms INT,
     severity ENUM('low','medium','high','critical') DEFAULT 'low',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
+
+    -- Index pour performance
     INDEX idx_user (user_id),
     INDEX idx_action (action),
     INDEX idx_date (created_at),
@@ -341,11 +375,14 @@ CREATE TABLE security_logs (
     INDEX idx_success (success),
     INDEX idx_severity (severity),
     INDEX idx_uuid (uuid),
-    
-    CONSTRAINT fk_security_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-);
 
--- Table des sessions utilisateur
+    -- Clés étrangères
+    CONSTRAINT fk_security_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- TABLE DES SESSIONS UTILISATEUR
+-- =====================================================
 CREATE TABLE user_sessions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     uuid VARCHAR(36) UNIQUE NOT NULL DEFAULT (UUID()),
@@ -361,21 +398,25 @@ CREATE TABLE user_sessions (
     expires_at TIMESTAMP NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     logout_reason VARCHAR(100),
-    
+
+    -- Index pour performance
     INDEX idx_user (user_id),
     INDEX idx_session_token (session_token),
     INDEX idx_expires_at (expires_at),
     INDEX idx_is_active (is_active),
     INDEX idx_uuid (uuid),
-    
-    CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 
--- Vues pour optimiser les requêtes fréquentes
+    -- Clés étrangères
+    CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- VUES POUR OPTIMISER LES REQUÊTES FRÉQUENTES
+-- =====================================================
 
 -- Vue des statistiques des techniciens
 CREATE VIEW technicien_stats AS
-SELECT 
+SELECT
     u.id,
     u.uuid,
     u.nom,
@@ -396,11 +437,11 @@ GROUP BY u.id, u.uuid, u.nom, u.prenom, u.username;
 
 -- Vue des machines nécessitant une maintenance
 CREATE VIEW machines_maintenance_due AS
-SELECT 
+SELECT
     m.*,
     c.nom as client_nom,
     DATEDIFF(CURDATE(), COALESCE(m.date_derniere_maintenance, m.date_installation)) as jours_depuis_maintenance,
-    CASE 
+    CASE
         WHEN m.date_prochaine_maintenance < CURDATE() THEN 'En retard'
         WHEN m.date_prochaine_maintenance <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 'Urgent'
         WHEN m.date_prochaine_maintenance <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'Bientôt'
@@ -410,26 +451,30 @@ FROM machines m
 LEFT JOIN clients c ON m.client_id = c.id
 WHERE m.statut IN ('actif', 'maintenance')
 AND (
-    m.date_prochaine_maintenance IS NULL 
+    m.date_prochaine_maintenance IS NULL
     OR m.date_prochaine_maintenance <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
 );
 
 -- Vue du dashboard avec KPI
 CREATE VIEW dashboard_kpi AS
-SELECT 
+SELECT
     (SELECT COUNT(*) FROM tickets WHERE statut IN ('ouvert','assigne','en_cours')) as tickets_ouverts,
-    (SELECT COUNT(*) FROM tickets WHERE statut = 'critique' AND statut != 'ferme') as tickets_critiques,
+    (SELECT COUNT(*) FROM tickets WHERE priorite = 'critique' AND statut != 'ferme') as tickets_critiques,
     (SELECT COUNT(*) FROM interventions WHERE DATE(created_at) = CURDATE()) as interventions_aujourd_hui,
     (SELECT COUNT(*) FROM machines WHERE statut = 'hors_service') as machines_hors_service,
     (SELECT COUNT(*) FROM pieces_detachees WHERE stock_actuel <= seuil_alerte) as pieces_en_rupture,
     (SELECT AVG(satisfaction_client) FROM interventions WHERE satisfaction_client IS NOT NULL AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)) as satisfaction_30j;
 
--- Index de performance spéciaux
+-- =====================================================
+-- INDEX DE PERFORMANCE SPÉCIAUX
+-- =====================================================
 CREATE INDEX idx_tickets_dashboard ON tickets(statut, priorite, date_creation);
 CREATE INDEX idx_interventions_stats ON interventions(technicien_id, date_debut, satisfaction_client);
 CREATE INDEX idx_pieces_stock_alert ON pieces_detachees(stock_actuel, seuil_alerte, statut);
 
--- Procédures stockées pour les opérations critiques
+-- =====================================================
+-- PROCÉDURES STOCKÉES POUR LES OPÉRATIONS CRITIQUES
+-- =====================================================
 
 DELIMITER //
 
@@ -438,14 +483,14 @@ CREATE PROCEDURE GenerateTicketNumber(OUT ticketNumber VARCHAR(20))
 BEGIN
     DECLARE nextId INT;
     DECLARE currentDate VARCHAR(8);
-    
+
     SET currentDate = DATE_FORMAT(NOW(), '%Y%m%d');
-    
-    SELECT COALESCE(MAX(CAST(SUBSTRING(numero_ticket, 10) AS UNSIGNED)), 0) + 1 
+
+    SELECT COALESCE(MAX(CAST(SUBSTRING(numero_ticket, 10) AS UNSIGNED)), 0) + 1
     INTO nextId
-    FROM tickets 
+    FROM tickets
     WHERE DATE(created_at) = CURDATE();
-    
+
     SET ticketNumber = CONCAT('TK', currentDate, LPAD(nextId, 4, '0'));
 END //
 
@@ -459,21 +504,21 @@ CREATE PROCEDURE UpdateStock(
 BEGIN
     DECLARE current_stock INT;
     DECLARE new_stock INT;
-    
+
     -- Vérifier le stock actuel
-    SELECT stock_actuel INTO current_stock 
-    FROM pieces_detachees 
+    SELECT stock_actuel INTO current_stock
+    FROM pieces_detachees
     WHERE id = p_piece_id;
-    
+
     IF current_stock >= p_quantite_utilisee THEN
         SET new_stock = current_stock - p_quantite_utilisee;
-        
+
         -- Mettre à jour le stock
-        UPDATE pieces_detachees 
+        UPDATE pieces_detachees
         SET stock_actuel = new_stock,
             updated_at = NOW()
         WHERE id = p_piece_id;
-        
+
         -- Enregistrer le mouvement
         INSERT INTO mouvements_stock (
             piece_id, type_mouvement, quantite, stock_avant, stock_apres,
@@ -482,14 +527,14 @@ BEGIN
             p_piece_id, 'sortie', p_quantite_utilisee, current_stock, new_stock,
             'Utilisation en intervention', p_intervention_id, p_utilisateur_id
         );
-        
+
         -- Vérifier si stock critique
         IF new_stock <= (SELECT seuil_alerte FROM pieces_detachees WHERE id = p_piece_id) THEN
-            UPDATE pieces_detachees 
-            SET statut = 'rupture' 
+            UPDATE pieces_detachees
+            SET statut = 'rupture'
             WHERE id = p_piece_id AND new_stock <= 0;
         END IF;
-        
+
     ELSE
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stock insuffisant';
     END IF;
@@ -497,15 +542,38 @@ END //
 
 DELIMITER ;
 
--- Données initiales sécurisées
+-- =====================================================
+-- CONFIGURATION SYSTÈME
+-- =====================================================
+CREATE TABLE system_config (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    config_key VARCHAR(100) UNIQUE NOT NULL,
+    config_value TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Paramètres système par défaut
+INSERT INTO system_config (config_key, config_value, description) VALUES
+('app_name', 'MediResolv', 'Nom de l'application'),
+('app_version', '1.0.0', 'Version de l'application'),
+('session_timeout_hours', '8', 'Durée de session en heures'),
+('max_login_attempts', '3', 'Nombre maximum de tentatives de connexion'),
+('backup_retention_days', '30', 'Rétention des sauvegardes en jours'),
+('maintenance_mode', 'false', 'Mode maintenance activé');
+
+-- =====================================================
+-- DONNÉES INITIALES SÉCURISÉES
+-- =====================================================
 
 -- Création du compte administrateur unique
 INSERT INTO users (
-    username, email, password_hash, nom, prenom, role, 
+    username, email, password_hash, nom, prenom, role,
     statut, created_at, doit_changer_mot_passe
 ) VALUES (
     'admin',
-    'admin@medimex.fr',
+    'admin@mediresolv.com',
     '$2b$12$LQv3c1yqBWVHxkd0LQ4YCOQEj5k4L0KbQ8n5YvZ2q9L0yF9xZ0wZ2', -- Hash de 'Admin123!@#'
     'Administrateur',
     'Système',
@@ -515,23 +583,10 @@ INSERT INTO users (
     TRUE
 );
 
--- Configuration système
-CREATE TABLE system_config (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    config_key VARCHAR(100) UNIQUE NOT NULL,
-    config_value TEXT NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Paramètres système par défaut
-INSERT INTO system_config (config_key, config_value, description) VALUES
-('app_name', 'MedimexResolv', 'Nom de l\'application'),
-('app_version', '1.0.0', 'Version de l\'application'),
-('session_timeout_hours', '8', 'Durée de session en heures'),
-('max_login_attempts', '3', 'Nombre maximum de tentatives de connexion'),
-('backup_retention_days', '30', 'Rétention des sauvegardes en jours'),
-('maintenance_mode', 'false', 'Mode maintenance activé');
-
+-- =====================================================
+-- COMMIT FINAL
+-- =====================================================
 COMMIT;
+
+-- Message de confirmation
+SELECT 'Base de données MediResolv installée avec succès!' as status;

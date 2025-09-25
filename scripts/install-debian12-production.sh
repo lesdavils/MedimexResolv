@@ -136,7 +136,7 @@ EOF
     chmod 600 /root/.mariadb_passwords
     log "✅ MariaDB sécurisé - Mots de passe sauvegardés dans /root/.mariadb_passwords"
 }
-NGINX_CONF_DIR="/etc/nginx/sites-enabled"
+
 
 if [ ! -d "$NGINX_CONF_DIR" ]; then
     echo "Création du dossier $NGINX_CONF_DIR"
@@ -149,7 +149,7 @@ if [ ! -f "$NGINX_CONF" ]; then
     cp /home/test/MediResolv/docker/nginx/default.conf $NGINX_CONF
 fi
 NGINX_CONF=/etc/nginx/sites-enabled/default
-
+NGINX_CONF_DIR="/etc/nginx/sites-enabled"
 
 
 if [ "$USE_SSL" = false ]; then

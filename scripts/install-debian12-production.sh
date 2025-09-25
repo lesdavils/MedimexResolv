@@ -60,6 +60,7 @@ update_system() {
     log "✅ Système mis à jour"
 }
 
+
 # Installation de Node.js 18
 install_nodejs() {
     info "📦 Installation de Node.js 18..."
@@ -135,6 +136,27 @@ EOF
     chmod 600 /root/.mariadb_passwords
     log "✅ MariaDB sécurisé - Mots de passe sauvegardés dans /root/.mariadb_passwords"
 }
+
+echo "Souhaitez-vous activer SSL/TLS avec Certificat ? (Y/n) : "
+read -r use_ssl
+if [[ $use_ssl =~ ^([yY][eE][sS]|[yY])$ ]]; then
+    USE_SSL=true
+else
+    USE_SSL=false
+fi
+
+# Plus bas, remplacement du restart nginx simple par conditionnel
+if [ "$USE_SSL" = true ]; then
+    echo 'Démarrage NGINX avec SSL activé'
+    systemctl restart nginx
+else
+    echo 'Démarrage NGINX sans SSL (HTTP uniquement)'
+    sed -i 's/listen 443 ssl;//g' /etc/nginx/sites-enabled/default
+    sed -i 's/ssl_certificate .*;/# ssl certificate désactivé;/g' /etc/nginx/sites-enabled/default
+    sed -i 's/ssl_certificate_key .*;/# ssl key désactivé;/g' /etc/nginx/sites-enabled/default
+    systemctl restart nginx
+fi
+
 
 # Installation de Nginx
 install_nginx() {

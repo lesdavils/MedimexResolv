@@ -243,11 +243,6 @@ server {
     }
 }
 
-# Rate limiting
-http {
-    limit_req_zone \$binary_remote_addr zone=api:10m rate=10r/s;
-    limit_req_zone \$binary_remote_addr zone=login:10m rate=1r/s;
-}
 EOF
 
     # Activation de la configuration

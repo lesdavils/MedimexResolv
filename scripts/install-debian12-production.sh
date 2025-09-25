@@ -108,23 +108,10 @@ setup_mariadb_security() {
     DB_PASSWORD=$(openssl rand -base64 32)
     
     # Configuration sécurisée automatique
-    mysql << EOF
--- Configuration sécurisée MariaDB
-UPDATE mysql.user SET Password = PASSWORD('${MYSQL_ROOT_PASSWORD}') WHERE User = 'root';
-DELETE FROM mysql.user WHERE User = '';
-DELETE FROM mysql.user WHERE User = 'root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
-DROP DATABASE IF EXISTS test;
-DELETE FROM mysql.db WHERE Db = 'test' OR Db = 'test\\_%';
+    mysql -u root << EOF
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+FLUSH PRIVILEGES;
 
--- Configuration optimisée
-SET GLOBAL innodb_buffer_pool_size = 256M;
-SET GLOBAL max_connections = 200;
-SET GLOBAL query_cache_size = 64M;
-SET GLOBAL query_cache_type = 1;
-SET GLOBAL slow_query_log = 1;
-SET GLOBAL long_query_time = 2;
-
--- Création base de données et utilisateur
 CREATE DATABASE IF NOT EXISTS medimex_resolv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS 'medimex'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
 GRANT ALL PRIVILEGES ON medimex_resolv.* TO 'medimex'@'localhost';

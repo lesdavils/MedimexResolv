@@ -136,15 +136,21 @@ EOF
     chmod 600 /root/.mariadb_passwords
     log "✅ MariaDB sécurisé - Mots de passe sauvegardés dans /root/.mariadb_passwords"
 }
+NGINX_CONF_DIR="/etc/nginx/sites-enabled"
 
-NGINX_CONF=/etc/nginx/sites-enabled/default
-
+if [ ! -d "$NGINX_CONF_DIR" ]; then
+    echo "Création du dossier $NGINX_CONF_DIR"
+    mkdir -p "$NGINX_CONF_DIR"
+fi
 if [ ! -f "$NGINX_CONF" ]; then
     echo "⚠️ Fichier NGINX $NGINX_CONF introuvable. Création ou copie de configuration par défaut..."
     # Vous pouvez ici copier une config par défaut ou générer un fichier adapté selon USE_SSL
     # Par exemple copier la config Docker incluse dans MediResolv/docker/nginx/default.conf
     cp /home/test/MediResolv/docker/nginx/default.conf $NGINX_CONF
 fi
+NGINX_CONF=/etc/nginx/sites-enabled/default
+
+
 
 if [ "$USE_SSL" = false ]; then
     sed -i 's/listen 443 ssl;//g' "$NGINX_CONF"

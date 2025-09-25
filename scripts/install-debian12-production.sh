@@ -148,8 +148,22 @@ if [ ! -f "$NGINX_CONF" ]; then
     # Par exemple copier la config Docker incluse dans MediResolv/docker/nginx/default.conf
     cp /home/test/MediResolv/docker/nginx/default.conf $NGINX_CONF
 fi
-NGINX_CONF=/etc/nginx/sites-enabled/default
+
 NGINX_CONF_DIR="/etc/nginx/sites-enabled"
+NGINX_CONF="$NGINX_CONF_DIR/mediresolv.conf"
+
+if [ ! -d "$NGINX_CONF_DIR" ]; then
+    echo "Création du dossier $NGINX_CONF_DIR"
+    mkdir -p "$NGINX_CONF_DIR"
+fi
+
+if [ "$USE_SSL" = true ]; then
+    cp /home/test/MediResolv/docker/nginx/with-ssl.conf "$NGINX_CONF"
+else
+    cp /home/test/MediResolv/docker/nginx/no-ssl.conf "$NGINX_CONF"
+fi
+
+systemctl restart nginx
 
 
 if [ "$USE_SSL" = false ]; then
